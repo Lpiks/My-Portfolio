@@ -1,0 +1,177 @@
+import { useEffect, useState } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { motion } from 'framer-motion';
+import { FaGithub, FaExternalLinkAlt, FaCheckCircle, FaArrowLeft } from 'react-icons/fa';
+import SkeletonLoader from '../components/SkeletonLoader';
+
+const ProjectDetails = () => {
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const [project, setProject] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [activeImage, setActiveImage] = useState(0);
+
+    const [form, setForm] = useState({
+        email: '',
+        message: ''
+    });
+    const [status, setStatus] = useState(null);
+
+    useEffect(() => {
+        const fetchProject = async () => {
+            try {
+                const res = await axios.get(`http://localhost:5000/api/projects/${id}`);
+                setProject(res.data);
+                setLoading(false);
+            } catch (error) {
+                console.error(error);
+                setLoading(false);
+            }
+        };
+        fetchProject();
+        window.scrollTo(0, 0);
+    }, [id]);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            await axios.post('http://localhost:5000/api/messages', {
+                senderName: "Project Inquiry User", // Simplified for this context
+                senderEmail: form.email,
+                message: form.message,
+                projectContext: {
+                    projectId: project._id,
+                    projectName: project.title
+                }
+            });
+            setStatus('success');
+            setForm({ email: '', message: '' });
+        } catch (error) {
+            setStatus('error');
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen py-32 px-4 max-w-7xl mx-auto">
+                <SkeletonLoader type="text" count={3} />
+            </div>
+        );
+    }
+
+    if (!project) return <div className="text-center py-20">Project not found</div>;
+
+    return (
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="min-h-screen pt-24 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto"
+        >
+            <Link to="/" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-8 transition-colors">
+                <FaArrowLeft /> Back to Project Gallery
+            </Link>
+
+            {/* Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
+                <div className="max-w-3xl">
+                    <h1 className="text-4xl md:text-6xl font-bold font-heading mb-4 text-white">{project.title}</h1>
+                    <div className="flex flex-wrap gap-2">
+                        {project.techStack.map(tech => (
+                            <span key={tech} className="px-3 py-1 bg-secondary border border-glass-border rounded-full text-xs font-mono text-accent">
+                                {tech}
+                            </span>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-4">
+                    {project.repoLink && (
+                        <a href={project.repoLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-6 py-3 bg-secondary hover:bg-white hover:text-primary border border-glass-border transform hover:-translate-y-1 transition-all rounded-full font-bold">
+                            <FaGithub /> Source Code
+                        </a>
+                    )}
+                    {project.liveLink && (
+                        <a href={project.liveLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-6 py-3 bg-accent hover:bg-accent-dark text-white transform hover:-translate-y-1 transition-all rounded-full font-bold shadow-lg shadow-accent/20">
+                            <FaExternalLinkAlt /> Live Preview
+                        </a>
+                    )}
+                </div>
+            </div>
+
+            {/* Gallery + Content Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                {/* Left: Gallery (2 Columns wide) */}
+                <div className="lg:col-span-2 space-y-4">
+                    <div className="aspect-video bg-gray-900 rounded-2xl overflow-hidden border border-glass-border shadow-2xl">
+                        {project.images && project.images.length > 0 ? (
+                            <img src={project.images[activeImage].url} alt={project.title} className="w-full h-full object-cover" />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-500">No Preview Available</div>
+                        )}
+                    </div>
+                    {/* Thumbnails */}
+                    {project.images.length > 1 && (
+                        <div className="flex gap-4 overflow-x-auto pb-2">
+                            {project.images.map((img, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => setActiveImage(idx)}
+                                    className={`w-24 h-16 rounded-lg overflow-hidden border-2 transition-all shrink-0 ${activeImage === idx ? 'border-accent' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                                >
+                                    <img src={img.url} alt="Thumbnail" className="w-full h-full object-cover" />
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Description */}
+                    <div className="glass-card p-8 rounded-2xl mt-8">
+                        <h2 className="text-2xl font-bold font-heading mb-4">About this Project</h2>
+                        <p className="text-gray-300 leading-relaxed text-lg whitespace-pre-wrap">
+                            {project.description}
+                        </p>
+                    </div>
+                </div>
+
+                {/* Right: Features & Contact (1 Column wide) */}
+                <div className="space-y-8">
+                    {/* Key Features */}
+                    {project.features && project.features.length > 0 && (
+                        <div className="glass-card p-8 rounded-2xl">
+                            <h3 className="text-xl font-bold font-heading mb-6 border-b border-glass-border pb-4">Key Features</h3>
+                            <ul className="space-y-3">
+                                {project.features.map((feat, idx) => (
+                                    <li key={idx} className="flex items-start gap-3 text-gray-300">
+                                        <FaCheckCircle className="text-accent mt-1 shrink-0" />
+                                        <span className="text-sm">{feat}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+
+                    {/* Contextual Inquiry CTA */}
+                    <div className="bg-gradient-to-b from-secondary to-primary p-8 rounded-2xl border border-glass-border">
+                        <h3 className="text-xl font-bold mb-2">Interested in this architecture?</h3>
+                        <p className="text-gray-400 text-sm mb-6">
+                            Contact me for details about <span className="text-accent font-bold">{project.title}</span> or to discuss a similar project.
+                        </p>
+
+                        <button
+                            onClick={() => navigate('/contact', { state: { projectTitle: project.title } })}
+                            className="w-full bg-accent hover:bg-accent-dark text-white font-bold py-4 rounded-lg transition-all shadow-lg shadow-accent/20 flex items-center justify-center gap-2"
+                        >
+                            Inquire about this Project <FaArrowLeft className="rotate-180" />
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </motion.div>
+    );
+};
+
+export default ProjectDetails;
