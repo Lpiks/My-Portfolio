@@ -12,7 +12,7 @@ const Login = () => {
 
     useEffect(() => {
         if (admin) {
-            navigate('/admin');
+            navigate(import.meta.env.VITE_ADMIN_ROUTE);
         }
     }, [admin, navigate]);
 

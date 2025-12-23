@@ -28,7 +28,7 @@ const Projects = () => {
             </motion.div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                {projects.map((project, index) => (
+                {[...projects].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0)).map((project, index) => (
                     <motion.div
                         key={project._id}
                         initial={{ opacity: 0, y: 20 }}

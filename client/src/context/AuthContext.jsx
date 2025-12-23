@@ -1,5 +1,5 @@
 import { createContext, useState, useEffect, useContext } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 
 const AuthContext = createContext();
 
@@ -15,7 +15,7 @@ export const AuthProvider = ({ children }) => {
                 // Actually, if we refresh, we need to re-fetch profile if cookie exists.
                 // Or simplified: check localStorage if we store user info there, but token is httpOnly.
                 // We should hit an endpoint to validate session.
-                const { data } = await axios.get('http://localhost:5000/api/auth/profile'); // TODO: Use env var
+                const { data } = await api.get('/api/auth/profile');
                 setAdmin(data);
             } catch (err) {
                 setAdmin(null);
@@ -23,19 +23,18 @@ export const AuthProvider = ({ children }) => {
                 setLoading(false);
             }
         };
-        // Setup axios defaults
-        axios.defaults.withCredentials = true;
+
         checkLoggedIn();
     }, []);
 
     const login = async (username, password) => {
-        const { data } = await axios.post('http://localhost:5000/api/auth/login', { username, password });
+        const { data } = await api.post('/api/auth/login', { username, password });
         setAdmin(data);
         return data;
     };
 
     const logout = async () => {
-        await axios.post('http://localhost:5000/api/auth/logout');
+        await api.post('/api/auth/logout');
         setAdmin(null);
     };
 

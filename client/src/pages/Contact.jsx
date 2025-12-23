@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 import { FaEnvelope, FaGithub, FaLinkedin, FaMapMarkerAlt, FaPaperPlane, FaProjectDiagram } from 'react-icons/fa';
 
 const Contact = () => {
@@ -30,7 +30,7 @@ const Contact = () => {
         e.preventDefault();
         setStatus('sending');
         try {
-            await axios.post('http://localhost:5000/api/messages', formData);
+            await api.post('/api/messages', formData);
             setStatus('success');
             setFormData({ senderName: '', senderEmail: '', subject: 'General Inquiry', message: '', relatedProject: 'General' });
         } catch (error) {
@@ -94,10 +94,10 @@ const Contact = () => {
                     </motion.div>
 
                     <motion.div variants={itemVariants} className="flex gap-4">
-                        <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="w-12 h-12 border border-glass-border rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all">
+                        <a href="https://github.com/Lpiks" target="_blank" rel="noopener noreferrer" className="w-12 h-12 border border-glass-border rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all">
                             <FaGithub className="text-xl" />
                         </a>
-                        <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="w-12 h-12 border border-glass-border rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all">
+                        <a href="https://linkedin.com/in/abdelhadi-hammaz" target="_blank" rel="noopener noreferrer" className="w-12 h-12 border border-glass-border rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all">
                             <FaLinkedin className="text-xl" />
                         </a>
                     </motion.div>

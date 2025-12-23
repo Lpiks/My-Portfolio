@@ -1,5 +1,5 @@
 import { createContext, useState, useEffect, useContext } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 
 const ProjectContext = createContext();
 
@@ -9,7 +9,7 @@ export const ProjectProvider = ({ children }) => {
 
     const fetchProjects = async () => {
         try {
-            const { data } = await axios.get('http://localhost:5000/api/projects');
+            const { data } = await api.get('/api/projects');
             setProjects(data);
         } catch (error) {
             console.error("Failed to fetch projects", error);
@@ -20,6 +20,10 @@ export const ProjectProvider = ({ children }) => {
 
     useEffect(() => {
         fetchProjects();
+
+        const onFocus = () => fetchProjects();
+        window.addEventListener('focus', onFocus);
+        return () => window.removeEventListener('focus', onFocus);
     }, []);
 
     return (

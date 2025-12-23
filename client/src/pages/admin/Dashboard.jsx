@@ -1,33 +1,26 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useProjects } from '../../context/ProjectContext';
+import { useMessages } from '../../context/MessageContext';
 import { FaProjectDiagram, FaEnvelope } from 'react-icons/fa';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 
 const Dashboard = () => {
-    const [stats, setStats] = useState({ projects: 0, messages: 0, unread: 0 });
-    const [loading, setLoading] = useState(true);
+    const { projects, loading: projectsLoading, fetchProjects } = useProjects();
+    const { messages, unreadCount, loading: messagesLoading, fetchMessages } = useMessages();
 
+    // Explicit re-fetch on mount/return to tab as requested
     useEffect(() => {
-        const fetchStats = async () => {
-            try {
-                const [projRes, msgRes] = await Promise.all([
-                    axios.get('http://localhost:5000/api/projects'),
-                    axios.get('http://localhost:5000/api/messages', { withCredentials: true })
-                ]);
-                setStats({
-                    projects: projRes.data.length,
-                    messages: msgRes.data.length,
-                    unread: msgRes.data.filter(m => !m.isRead).length
-                });
-                setLoading(false);
-            } catch (error) {
-                console.error("Error fetching stats", error);
-                setLoading(false);
-            }
-        };
-        fetchStats();
+        fetchProjects();
+        fetchMessages();
     }, []);
+
+    const loading = projectsLoading || messagesLoading;
+    const stats = {
+        projects: projects.length,
+        messages: messages.length,
+        unread: unreadCount
+    };
 
     return (
         <div className="space-y-10">

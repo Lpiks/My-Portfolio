@@ -27,7 +27,7 @@ const ProjectTable = ({ projects, loading, onEdit, onDelete, onView }) => {
                         <tr className="bg-primary/50 text-gray-400 text-sm uppercase tracking-wider">
                             <th className="p-4 font-medium">Thumbnail</th>
                             <th className="p-4 font-medium">Title</th>
-                            <th className="p-4 font-medium">Tech Stack</th>
+                            <th className="p-4 font-medium hidden sm:table-cell">Tech Stack</th>
                             <th className="p-4 font-medium text-right">Actions</th>
                         </tr>
                     </thead>
@@ -51,7 +51,7 @@ const ProjectTable = ({ projects, loading, onEdit, onDelete, onView }) => {
                                     <div className="font-bold text-white">{project.title}</div>
                                     <div className="text-gray-500 text-xs truncate max-w-xs">{project.description}</div>
                                 </td>
-                                <td className="p-4">
+                                <td className="p-4 hidden sm:table-cell">
                                     <div className="flex flex-wrap gap-1">
                                         {project.techStack.slice(0, 3).map(tech => (
                                             <span key={tech} className="px-2 py-0.5 bg-primary rounded border border-glass-border text-xs text-gray-300">

@@ -9,9 +9,7 @@ const projectSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    techStack: [{
-        type: String
-    }],
+    techStack: [String],
     images: [{
         url: String,
         public_id: String
@@ -23,12 +21,18 @@ const projectSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    features: [{
-        type: String
-    }],
+    features: [String],
     featured: {
         type: Boolean,
         default: false
+    },
+    featuredOnHome: {
+        type: Boolean,
+        default: false
+    },
+    displayOrder: {
+        type: Number,
+        default: 0
     }
 }, { timestamps: true });
 

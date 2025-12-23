@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../utils/api';
 import { FaPlus } from 'react-icons/fa';
 import ProjectTable from '../../components/admin/ProjectTable';
 import ProjectDetailModal from '../../components/admin/ProjectDetailModal';
@@ -27,11 +27,18 @@ const Projects = () => {
         techStack: '',
         features: '',
         liveLink: '',
-        repoLink: ''
+        liveLink: '',
+        repoLink: '',
+        featuredOnHome: false,
+        displayOrder: 0
     });
 
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [previewImages, setPreviewImages] = useState([]);
+
+    // Image Management State
+    const [existingImages, setExistingImages] = useState([]);
+    const [imagesToDelete, setImagesToDelete] = useState([]);
 
     useEffect(() => {
         fetchProjects();
@@ -46,7 +53,7 @@ const Projects = () => {
 
     const fetchProjects = async () => {
         try {
-            const res = await axios.get('http://localhost:5000/api/projects');
+            const res = await api.get('/api/projects');
             setProjects(res.data);
             setLoading(false);
         } catch (error) {
@@ -68,14 +75,20 @@ const Projects = () => {
             techStack: project.techStack.join(', '),
             features: project.features ? project.features.join(', ') : '',
             liveLink: project.liveLink || '',
-            repoLink: project.repoLink || ''
+            liveLink: project.liveLink || '',
+            repoLink: project.repoLink || '',
+            featuredOnHome: project.featuredOnHome || false,
+            displayOrder: project.displayOrder || 0
         });
-        // Set previews to existing images
+
+        // Initialize existing images
         if (project.images && project.images.length > 0) {
-            setPreviewImages(project.images.map(img => img.url));
+            setExistingImages(project.images);
         } else {
-            setPreviewImages([]);
+            setExistingImages([]);
         }
+        setImagesToDelete([]);
+        setPreviewImages([]); // Creating new ones only for new uploads
         setSelectedFiles([]); // Clear new files
         setIsFormOpen(true);
     };
@@ -95,12 +108,28 @@ const Projects = () => {
 
     const confirmDelete = async () => {
         try {
-            await axios.delete(`http://localhost:5000/api/projects/${deleteModal.projectId}`, { withCredentials: true });
+            await api.delete(`/api/projects/${deleteModal.projectId}`);
             toast.success('Project deleted');
             fetchProjects();
         } catch (error) {
             toast.error('Failed to delete');
         }
+    };
+
+    // Image Management Handlers
+    const handleDeleteExistingImage = (id) => {
+        // Fallback for missing IDs (use index logic if needed, but here we just prevent undefined)
+        if (!id) return;
+        setImagesToDelete(prev => [...prev, id]);
+        setExistingImages(prev => prev.filter(img => img._id !== id));
+    };
+
+    const handleMakeMainImage = (index) => {
+        const newImages = [...existingImages];
+        const [selected] = newImages.splice(index, 1);
+        newImages.unshift(selected); // Add to beginning
+        setExistingImages(newImages);
+        toast.success("Image set as main");
     };
 
     const handleSubmit = async (e) => {
@@ -113,12 +142,23 @@ const Projects = () => {
         data.append('features', formData.features);
         data.append('liveLink', formData.liveLink);
         data.append('repoLink', formData.repoLink);
+        data.append('featuredOnHome', formData.featuredOnHome);
+        data.append('displayOrder', formData.displayOrder);
+
+        // Append Image Management Data
+        data.append('imagesToDelete', JSON.stringify(imagesToDelete));
+        data.append('existingImagesOrder', JSON.stringify(existingImages.map(img => img._id)));
 
         // Append Files
         if (selectedFiles.length > 0) {
             selectedFiles.forEach(file => {
                 data.append('images', file);
             });
+        }
+
+        // Debug FormData
+        for (let pair of data.entries()) {
+
         }
 
         const toastId = toast.loading('Saving...');
@@ -129,30 +169,34 @@ const Projects = () => {
             };
 
             if (editingProject) {
-                await axios.put(`http://localhost:5000/api/projects/${editingProject._id}`, data, config);
+                await api.put(`/api/projects/${editingProject._id}`, data, config);
                 toast.success('Project updated', { id: toastId });
             } else {
-                await axios.post('http://localhost:5000/api/projects', data, config);
+                await api.post('/api/projects', data, config);
                 toast.success('Project created', { id: toastId });
             }
             setIsFormOpen(false);
             setEditingProject(null);
-            setFormData({ title: '', description: '', techStack: '', features: '', liveLink: '', repoLink: '' });
+            setFormData({ title: '', description: '', techStack: '', features: '', liveLink: '', repoLink: '', featuredOnHome: false, displayOrder: 0 });
             setSelectedFiles([]);
             setPreviewImages([]);
+            setExistingImages([]);
+            setImagesToDelete([]);
             fetchProjects();
         } catch (error) {
             console.error(error);
-            toast.error('Error saving project', { id: toastId });
+            toast.error(error.response?.data?.message || 'Error saving project', { id: toastId });
         }
     };
 
     const resetForm = () => {
         setIsFormOpen(true);
         setEditingProject(null);
-        setFormData({ title: '', description: '', techStack: '', features: '', liveLink: '', repoLink: '' });
+        setFormData({ title: '', description: '', techStack: '', features: '', liveLink: '', repoLink: '', featuredOnHome: false, displayOrder: 0 });
         setSelectedFiles([]);
         setPreviewImages([]);
+        setExistingImages([]);
+        setImagesToDelete([]);
     };
 
     return (
@@ -222,8 +266,20 @@ const Projects = () => {
                                         <input className="w-full bg-primary/50 border border-glass-border p-3 rounded-lg text-white" value={formData.liveLink} onChange={e => setFormData({ ...formData, liveLink: e.target.value })} />
                                     </div>
                                     <div>
-                                        <label className="text-sm text-gray-400 block mb-1">Repo Link</label>
-                                        <input className="w-full bg-primary/50 border border-glass-border p-3 rounded-lg text-white" value={formData.repoLink} onChange={e => setFormData({ ...formData, repoLink: e.target.value })} />
+                                        <label className="text-sm text-gray-400 block mb-1">Repo Link *</label>
+                                        <input className="w-full bg-primary/50 border border-glass-border p-3 rounded-lg text-white" value={formData.repoLink} onChange={e => setFormData({ ...formData, repoLink: e.target.value })} required />
+                                    </div>
+                                    <div className="flex gap-4">
+                                        <div className="flex-1">
+                                            <label className="text-sm text-gray-400 block mb-1">Display Rank</label>
+                                            <input type="number" className="w-full bg-primary/50 border border-glass-border p-3 rounded-lg text-white" value={formData.displayOrder} onChange={e => setFormData({ ...formData, displayOrder: e.target.value })} />
+                                        </div>
+                                        <div className="flex items-center justify-center pt-6">
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input type="checkbox" className="w-5 h-5 accent-accent" checked={formData.featuredOnHome} onChange={e => setFormData({ ...formData, featuredOnHome: e.target.checked })} />
+                                                <span className="text-white font-medium">Show on Home Page</span>
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -237,8 +293,60 @@ const Projects = () => {
                                         <label className="text-sm text-gray-400 block mb-1">Key Features (comma separated)</label>
                                         <textarea className="w-full bg-primary/50 border border-glass-border p-3 rounded-lg text-white" rows="2" value={formData.features} onChange={e => setFormData({ ...formData, features: e.target.value })} />
                                     </div>
+
+                                    {/* Existing Images Management */}
+                                    {existingImages.length > 0 && (
+                                        <div>
+                                            <label className="text-sm text-gray-400 block mb-2">Manage Existing Images (First is Main)</label>
+                                            <div className="grid grid-cols-2 gap-3">
+                                                {existingImages.map((img, idx) => (
+                                                    <div key={img._id || idx} className="relative group aspect-video rounded-lg overflow-hidden border border-glass-border">
+                                                        <img src={img.url} alt="Project" className="w-full h-full object-cover" />
+
+                                                        {/* Gradient Overlay */}
+                                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 opacity-100 transition-opacity" />
+
+                                                        {/* Actions */}
+                                                        <div className="absolute top-2 right-2">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleDeleteExistingImage(img._id)}
+                                                                className="bg-red-500/80 hover:bg-red-600 text-white p-1.5 rounded-full backdrop-blur-sm transition-all shadow-lg"
+                                                                title="Delete Image"
+                                                            >
+                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                                </svg>
+                                                            </button>
+                                                        </div>
+
+                                                        {/* Make Main Button */}
+                                                        {idx !== 0 && (
+                                                            <div className="absolute top-2 left-2">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleMakeMainImage(idx)}
+                                                                    className="bg-white/20 hover:bg-accent text-white px-2 py-1 text-xs rounded-md backdrop-blur-sm transition-all border border-white/20"
+                                                                >
+                                                                    Make Main
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                        {idx === 0 && (
+                                                            <div className="absolute top-2 left-2">
+                                                                <span className="bg-accent text-white px-2 py-1 text-xs rounded-md shadow-lg font-bold">
+                                                                    Main Image
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
                                     <div>
-                                        <label className="text-sm text-gray-400 block mb-1">Project Images (Upload)</label>
+                                        <label className="text-sm text-gray-400 block mb-1">Add New Images</label>
                                         <input
                                             type="file"
                                             multiple
@@ -248,13 +356,13 @@ const Projects = () => {
                                         />
                                     </div>
 
-                                    {/* Live Preview */}
+                                    {/* Preview New Uploads */}
                                     {previewImages.length > 0 && (
                                         <div className="mt-4">
-                                            <p className="text-xs text-gray-500 mb-2">Image Previews</p>
+                                            <p className="text-xs text-gray-500 mb-2">New Uploads Preview</p>
                                             <div className="grid grid-cols-2 gap-2">
                                                 {previewImages.map((src, idx) => (
-                                                    <div key={idx} className="aspect-video rounded-lg overflow-hidden border border-glass-border bg-black relative group">
+                                                    <div key={idx} className="aspect-video rounded-lg overflow-hidden border border-glass-border bg-black relative">
                                                         <img src={src} alt={`Preview ${idx}`} className="w-full h-full object-cover" />
                                                     </div>
                                                 ))}

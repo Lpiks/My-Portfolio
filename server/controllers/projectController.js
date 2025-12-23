@@ -13,7 +13,7 @@ cloudinary.config({
 // @access  Public
 const getProjects = async (req, res) => {
     try {
-        const projects = await Project.find({}).sort({ createdAt: -1 });
+        const projects = await Project.find({}).sort({ displayOrder: 1 });
         res.json(projects);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -55,7 +55,7 @@ const uploadToCloudinary = (buffer) => {
 // @access  Private/Admin
 const createProject = async (req, res) => {
     try {
-        const { title, description, techStack, liveLink, repoLink, featured } = req.body;
+        const { title, description, techStack, liveLink, repoLink, featured, featuredOnHome, displayOrder } = req.body;
 
         let uploadedImages = [];
 
@@ -84,13 +84,15 @@ const createProject = async (req, res) => {
             images: uploadedImages, // Array of {url, public_id}
             liveLink,
             repoLink,
-            featured: featured === 'true' || featured === true // Handle FormData boolean/string
+            featured: featured === 'true' || featured === true,
+            featuredOnHome: featuredOnHome === 'true' || featuredOnHome === true,
+            displayOrder: Number(displayOrder) || 0
         });
 
         const createdProject = await project.save();
         res.status(201).json(createdProject);
     } catch (error) {
-        console.error("Create Project Error:", error);
+        console.error("Create Project Error Details:", JSON.stringify(error, Object.getOwnPropertyNames(error)));
         res.status(400).json({ message: error.message });
     }
 };
@@ -100,7 +102,7 @@ const createProject = async (req, res) => {
 // @access  Private/Admin
 const updateProject = async (req, res) => {
     try {
-        const { title, description, techStack, liveLink, repoLink, featured } = req.body;
+        const { title, description, techStack, liveLink, repoLink, featured, featuredOnHome, displayOrder } = req.body;
         const project = await Project.findById(req.params.id);
 
         if (project) {
@@ -111,6 +113,14 @@ const updateProject = async (req, res) => {
 
             if (featured !== undefined) {
                 project.featured = featured === 'true' || featured === true;
+            }
+
+            if (featuredOnHome !== undefined) {
+                project.featuredOnHome = featuredOnHome === 'true' || featuredOnHome === true;
+            }
+
+            if (displayOrder !== undefined) {
+                project.displayOrder = Number(displayOrder);
             }
 
             if (techStack) {
@@ -129,19 +139,51 @@ const updateProject = async (req, res) => {
                 }
             }
 
-            // Handle New Images
+            // Handle Image Updates
+            let currentImages = project.images;
+
+            // 1. Remove deleted images
+            if (req.body.imagesToDelete) {
+                try {
+                    const imagesToDelete = JSON.parse(req.body.imagesToDelete); // Array of _id strings
+                    if (Array.isArray(imagesToDelete) && imagesToDelete.length > 0) {
+                        // Optional: Find public_ids to delete from Cloudinary
+                        // const toDelete = currentImages.filter(img => imagesToDelete.includes(img._id.toString()));
+                        // toDelete.forEach(img => { if(img.public_id) cloudinary.uploader.destroy(img.public_id); });
+
+                        currentImages = currentImages.filter(img => !imagesToDelete.includes(img._id.toString()));
+                    }
+                } catch (e) {
+                    console.error("Error parsing imagesToDelete", e);
+                }
+            }
+
+            // 2. Reorder remaining images
+            if (req.body.existingImagesOrder) {
+                try {
+                    const order = JSON.parse(req.body.existingImagesOrder); // Array of _id strings
+                    if (Array.isArray(order)) {
+                        currentImages.sort((a, b) => {
+                            const idA = a._id ? a._id.toString() : '';
+                            const idB = b._id ? b._id.toString() : '';
+                            return order.indexOf(idA) - order.indexOf(idB);
+                        });
+                    }
+                } catch (e) {
+                    console.error("Error parsing existingImagesOrder", e);
+                }
+            }
+
+            // 3. Add New Images
             if (req.files && req.files.length > 0) {
                 const uploadPromises = req.files.map(file => uploadToCloudinary(file.buffer));
                 const newImages = await Promise.all(uploadPromises);
-                // Append or Replace? Let's Replace for "Main Image" requirement, or Append?
-                // Usually for simple portfolio, replacing old images with new ones if uploaded is easier to manage unless explicit "add" logic.
-                // Let's Append for safety, or Replace if user wants "Image Input for Main Image".
-                // Given user said "remove url field i need image input", implies replacing the manual URL method.
-                // let's replace existing if new files are uploaded, OR add a logic to keep old.
-                // For now, let's CONCATENATE defined by user intent usually, but to keep it simple:
-                // If new images uploaded, add them.
-                project.images = [...project.images, ...newImages];
+
+                // Append new images to the end
+                currentImages = [...currentImages, ...newImages];
             }
+
+            project.images = currentImages;
 
             // Check if user cleared images (complex with FormData). Ideally we need a "imagesToDelete" field.
             // Skipping complex delete logic for now.

@@ -3,6 +3,7 @@ import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { FaProjectDiagram, FaEnvelope, FaCog, FaSignOutAlt, FaHome, FaBars, FaTimes, FaChartLine } from 'react-icons/fa';
 import { Toaster } from 'react-hot-toast';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const AdminLayout = ({ children }) => {
     const { logout } = useAuth();
@@ -10,14 +11,14 @@ const AdminLayout = ({ children }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     const menuItems = [
-        { path: '/admin', name: 'Overview', icon: FaHome },
-        { path: '/admin/projects', name: 'Projects', icon: FaProjectDiagram },
-        { path: '/admin/inbox', name: 'Inbox', icon: FaEnvelope },
-        { path: '/admin/analytics', name: 'Analytics', icon: FaChartLine },
-        { path: '/admin/settings', name: 'Settings', icon: FaCog },
+        { path: import.meta.env.VITE_ADMIN_ROUTE, name: 'Overview', icon: FaHome },
+        { path: import.meta.env.VITE_ADMIN_ROUTE + '/projects', name: 'Projects', icon: FaProjectDiagram },
+        { path: import.meta.env.VITE_ADMIN_ROUTE + '/inbox', name: 'Inbox', icon: FaEnvelope },
+        { path: import.meta.env.VITE_ADMIN_ROUTE + '/analytics', name: 'Analytics', icon: FaChartLine },
+        { path: import.meta.env.VITE_ADMIN_ROUTE + '/settings', name: 'Settings', icon: FaCog },
     ];
 
-    const isActive = (path) => location.pathname === path || (path !== '/admin' && location.pathname.startsWith(path));
+    const isActive = (path) => location.pathname === path || (path !== import.meta.env.VITE_ADMIN_ROUTE && location.pathname.startsWith(path));
 
     return (
         <div className="min-h-screen bg-primary flex flex-col font-sans text-gray-100 selection:bg-accent selection:text-white">
@@ -85,23 +86,47 @@ const AdminLayout = ({ children }) => {
             </div>
 
             {/* Mobile Nav Overlay */}
-            {isSidebarOpen && (
-                <div className="fixed inset-0 z-40 bg-secondary pt-24 px-6 md:hidden animate-fade-in-down">
-                    <nav className="flex flex-col gap-6">
-                        {menuItems.map((item) => (
-                            <Link
-                                key={item.path}
-                                to={item.path}
-                                onClick={() => setIsSidebarOpen(false)}
-                                className={`text-2xl font-bold flex items-center gap-4 ${isActive(item.path) ? 'text-white' : 'text-gray-600'}`}
-                            >
-                                <item.icon />
-                                {item.name} <span className="text-accent">{isActive(item.path) ? '.' : ''}</span>
-                            </Link>
-                        ))}
-                    </nav>
-                </div>
-            )}
+            <AnimatePresence>
+                {isSidebarOpen && (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setIsSidebarOpen(false)}
+                            className="fixed inset-0 z-40 bg-black/60 md:hidden backdrop-blur-sm"
+                        />
+                        <motion.div
+                            initial={{ x: '100%' }}
+                            animate={{ x: 0 }}
+                            exit={{ x: '100%' }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                            className="fixed inset-y-0 right-0 z-50 w-64 bg-secondary border-l border-glass-border pt-24 px-6 md:hidden shadow-2xl"
+                        >
+                            <nav className="flex flex-col gap-6">
+                                {menuItems.map((item) => (
+                                    <Link
+                                        key={item.path}
+                                        to={item.path}
+                                        onClick={() => setIsSidebarOpen(false)}
+                                        className={`text-xl font-bold flex items-center gap-4 ${isActive(item.path) ? 'text-white' : 'text-gray-500'}`}
+                                    >
+                                        <item.icon />
+                                        {item.name} <span className="text-accent">{isActive(item.path) ? '.' : ''}</span>
+                                    </Link>
+                                ))}
+                                <button
+                                    onClick={logout}
+                                    className="flex items-center gap-4 text-xl font-bold text-gray-500 mt-8 pt-8 border-t border-glass-border"
+                                >
+                                    <FaSignOutAlt />
+                                    Sign Out
+                                </button>
+                            </nav>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

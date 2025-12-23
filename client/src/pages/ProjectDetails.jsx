@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { motion } from 'framer-motion';
+import api from '../utils/api';
+import { motion, AnimatePresence } from 'framer-motion';
 import { FaGithub, FaExternalLinkAlt, FaCheckCircle, FaArrowLeft } from 'react-icons/fa';
 import SkeletonLoader from '../components/SkeletonLoader';
 
@@ -9,6 +9,7 @@ const ProjectDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [project, setProject] = useState(null);
+    const [isLightboxOpen, setIsLightboxOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [activeImage, setActiveImage] = useState(0);
 
@@ -21,7 +22,7 @@ const ProjectDetails = () => {
     useEffect(() => {
         const fetchProject = async () => {
             try {
-                const res = await axios.get(`http://localhost:5000/api/projects/${id}`);
+                const res = await api.get(`/api/projects/${id}`);
                 setProject(res.data);
                 setLoading(false);
             } catch (error) {
@@ -36,7 +37,7 @@ const ProjectDetails = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('http://localhost:5000/api/messages', {
+            await api.post('/api/messages', {
                 senderName: "Project Inquiry User", // Simplified for this context
                 senderEmail: form.email,
                 message: form.message,
@@ -52,7 +53,17 @@ const ProjectDetails = () => {
         }
     };
 
+    // Add keydown listener for Escape to close lightbox
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') setIsLightboxOpen(false);
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
+
     if (loading) {
+        // ... (keep loading state)
         return (
             <div className="min-h-screen py-32 px-4 max-w-7xl mx-auto">
                 <SkeletonLoader type="text" count={3} />
@@ -105,9 +116,17 @@ const ProjectDetails = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
                 {/* Left: Gallery (2 Columns wide) */}
                 <div className="lg:col-span-2 space-y-4">
-                    <div className="aspect-video bg-gray-900 rounded-2xl overflow-hidden border border-glass-border shadow-2xl">
+                    <div
+                        className="aspect-video bg-gray-900 rounded-2xl overflow-hidden border border-glass-border shadow-2xl cursor-pointer relative group"
+                        onClick={() => setIsLightboxOpen(true)}
+                    >
                         {project.images && project.images.length > 0 ? (
-                            <img src={project.images[activeImage].url} alt={project.title} className="w-full h-full object-cover" />
+                            <>
+                                <img src={project.images[activeImage].url} alt={project.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                    <span className="bg-black/50 text-white px-4 py-2 rounded-full backdrop-blur-sm text-sm font-bold">Click to Expand</span>
+                                </div>
+                            </>
                         ) : (
                             <div className="w-full h-full flex items-center justify-center text-gray-500">No Preview Available</div>
                         )}
@@ -169,6 +188,38 @@ const ProjectDetails = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Lightbox Overlay */}
+            <AnimatePresence>
+                {isLightboxOpen && project.images && project.images.length > 0 && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md p-4"
+                        onClick={() => setIsLightboxOpen(false)}
+                    >
+                        <button
+                            className="absolute top-6 right-6 text-white/50 hover:text-white transition-colors p-2"
+                            onClick={() => setIsLightboxOpen(false)}
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+
+                        <motion.img
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            src={project.images[activeImage].url}
+                            alt="Full View"
+                            className="max-w-full max-h-screen object-contain rounded-md shadow-2xl"
+                            onClick={(e) => e.stopPropagation()} // Prevent close when clicking image
+                        />
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
         </motion.div>
     );

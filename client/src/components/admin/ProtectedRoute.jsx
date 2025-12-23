@@ -7,7 +7,7 @@ const ProtectedRoute = () => {
     if (loading) return null; // Or a spinner
 
     if (!admin) {
-        return <Navigate to="/admin/login" replace />;
+        return <Navigate to={import.meta.env.VITE_ADMIN_LOGIN} replace />;
     }
 
     return <Outlet />;

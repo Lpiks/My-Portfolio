@@ -14,9 +14,7 @@ export const initGA = () => {
 
     if (!isTrackingDisabled) {
         ReactGA.initialize(MEASUREMENT_ID);
-        console.log("GA4 Initialized with ID:", MEASUREMENT_ID);
-    } else {
-        console.log("GA4 Tracking disabled by Admin settings.");
+
     }
 };
 

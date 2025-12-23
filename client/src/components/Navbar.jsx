@@ -61,11 +61,7 @@ const Navbar = () => {
                             >
                                 Let&apos;s Talk
                             </Link>
-                            {/* {admin && (
-                                <Link to="/admin" className="text-accent font-medium text-sm uppercase tracking-widest pl-4">
-                                    Dashboard
-                                </Link>
-                            )} */}
+
                         </div>
                     </div>
 

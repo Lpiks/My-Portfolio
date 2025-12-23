@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useMessages } from '../../context/MessageContext';
 import { FaTrash, FaReply, FaEnvelopeOpen } from 'react-icons/fa';
 import Skeleton from 'react-loading-skeleton';
 import { toast } from 'react-hot-toast';
@@ -7,23 +7,20 @@ import { motion } from 'framer-motion';
 import DeleteConfirmationModal from '../../components/admin/DeleteConfirmationModal';
 
 const Inbox = () => {
-    const [messages, setMessages] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { messages, loading, fetchMessages, markAsRead, deleteMessage } = useMessages();
     const [selectedMessage, setSelectedMessage] = useState(null);
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, messageId: null, senderName: '' });
+    const [isMobileDetailOpen, setIsMobileDetailOpen] = useState(false);
 
     useEffect(() => {
         fetchMessages();
     }, []);
 
-    const fetchMessages = async () => {
-        try {
-            const res = await axios.get('http://localhost:5000/api/messages', { withCredentials: true });
-            setMessages(res.data);
-            setLoading(false);
-        } catch (error) {
-            toast.error('Failed to load messages');
-            setLoading(false);
+    const handleSelectMessage = (msg) => {
+        setSelectedMessage(msg);
+        setIsMobileDetailOpen(true);
+        if (!msg.isRead) {
+            markAsRead(msg._id);
         }
     };
 
@@ -34,10 +31,13 @@ const Inbox = () => {
 
     const confirmDelete = async () => {
         try {
-            await axios.delete(`http://localhost:5000/api/messages/${deleteModal.messageId}`, { withCredentials: true });
+            await deleteMessage(deleteModal.messageId);
             toast.success('Message deleted');
-            if (selectedMessage?._id === deleteModal.messageId) setSelectedMessage(null);
-            fetchMessages();
+            if (selectedMessage?._id === deleteModal.messageId) {
+                setSelectedMessage(null);
+                setIsMobileDetailOpen(false);
+            }
+            setDeleteModal({ ...deleteModal, isOpen: false });
         } catch (error) {
             toast.error('Failed to delete');
         }
@@ -54,8 +54,8 @@ const Inbox = () => {
                 itemTitle={deleteModal.senderName}
             />
 
-            {/* List View */}
-            <div className="w-full md:w-1/3 bg-secondary border border-glass-border rounded-2xl overflow-hidden flex flex-col">
+            {/* List View - Hidden on mobile if detail is open */}
+            <div className={`w-full md:w-1/3 bg-secondary border border-glass-border rounded-2xl overflow-hidden flex flex-col ${isMobileDetailOpen ? 'hidden md:flex' : 'flex'}`}>
                 <div className="p-4 border-b border-glass-border bg-primary/30">
                     <h2 className="font-bold text-white">Inbox ({messages.length})</h2>
                 </div>
@@ -68,8 +68,8 @@ const Inbox = () => {
                         messages.map(msg => (
                             <div
                                 key={msg._id}
-                                onClick={() => setSelectedMessage(msg)}
-                                className={`p-4 rounded-xl cursor-pointer transition-all border ${selectedMessage?._id === msg._id ? 'bg-accent/10 border-accent/50' : 'bg-primary/20 border-transparent hover:bg-white/5'}`}
+                                onClick={() => handleSelectMessage(msg)}
+                                className={`p-4 rounded-xl cursor-pointer transition-all border ${selectedMessage?._id === msg._id ? 'bg-accent/10 border-accent/50' : 'bg-primary/20 border-transparent hover:bg-white/5'} ${!msg.isRead ? 'border-l-4 border-l-accent' : ''}`}
                             >
                                 <div className="flex justify-between mb-1">
                                     <span className="font-bold text-white text-sm truncate">{msg.senderName}</span>
@@ -83,8 +83,17 @@ const Inbox = () => {
                 </div>
             </div>
 
-            {/* Detail View */}
-            <div className="hidden md:flex flex-1 bg-secondary border border-glass-border rounded-2xl p-8 flex-col">
+            {/* Detail View - Full width on mobile when open, hidden otherwise */}
+            <div className={`flex-1 bg-secondary border border-glass-border rounded-2xl p-6 md:p-8 flex-col ${isMobileDetailOpen ? 'flex fixed inset-0 z-50 rounded-none md:static md:rounded-2xl md:z-auto' : 'hidden md:flex'}`}>
+                {/* Mobile Back Button */}
+                <div className="md:hidden pb-4 mb-4 border-b border-glass-border">
+                    <button
+                        onClick={() => setIsMobileDetailOpen(false)}
+                        className="flex items-center gap-2 text-gray-400 hover:text-white"
+                    >
+                        ← Back to Inbox
+                    </button>
+                </div>
                 {selectedMessage ? (
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}

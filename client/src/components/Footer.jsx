@@ -15,9 +15,9 @@ const Footer = () => {
 
                     </div>
                     <div className="flex space-x-6">
-                        <a href="#" className="text-gray-400 hover:text-accent transition-colors"><FaGithub size={20} /></a>
-                        <a href="#" className="text-gray-400 hover:text-accent transition-colors"><FaLinkedin size={20} /></a>
-                        <a href="#" className="text-gray-400 hover:text-accent transition-colors"><FaTwitter size={20} /></a>
+                        <a href="https://github.com/Lpiks" className="text-gray-400 hover:text-accent transition-colors"><FaGithub size={20} /></a>
+                        <a href="www.linkedin.com/in/abdelhadi-hammaz" className="text-gray-400 hover:text-accent transition-colors"><FaLinkedin size={20} /></a>
+                        {/* <a href="#" className="text-gray-400 hover:text-accent transition-colors"><FaTwitter size={20} /></a> */}
                     </div>
                 </div>
             </div>

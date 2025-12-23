@@ -52,7 +52,7 @@ const Home = () => {
                     <div className="text-center text-gray-500 py-20">Loading projects...</div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
-                        {projects.map((project) => (
+                        {projects.filter(p => p.featuredOnHome).slice(0, 2).map((project) => (
                             <motion.div
                                 key={project._id}
                                 layoutId={project._id}

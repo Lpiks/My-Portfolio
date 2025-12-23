@@ -1,6 +1,7 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 
+
 // Client Components
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -14,6 +15,7 @@ import ServiceDetail from './pages/ServiceDetail';
 import Process from './pages/Process';
 import TechStack from './pages/TechStack';
 import Contact from './pages/Contact';
+import NotFound from './pages/NotFound';
 
 // Admin Components & Guard
 import AdminLayout from './components/admin/AdminLayout';
@@ -37,7 +39,7 @@ function App() {
     usePageTracking();
 
     // Logic to detect if the user is in the Admin section
-    const isAdminRoute = location.pathname.startsWith('/admin');
+    const isAdminRoute = location.pathname.startsWith(import.meta.env.VITE_ADMIN_ROUTE);
 
     return (
         <div className="flex flex-col min-h-screen bg-primary">
@@ -65,10 +67,10 @@ function App() {
                         <Route path="/contact" element={<Contact />} />
 
                         {/* --- ADMIN AUTH ROUTE --- */}
-                        <Route path="/admin/login" element={<AdminLogin />} />
+                        <Route path={import.meta.env.VITE_ADMIN_LOGIN} element={<AdminLogin />} />
 
                         {/* --- PROTECTED ADMIN SUITE --- */}
-                        <Route path="/admin" element={<ProtectedRoute />}>
+                        <Route path={import.meta.env.VITE_ADMIN_ROUTE} element={<ProtectedRoute />}>
                             {/* Layout handles the Sidebar and Topbar for Admin */}
                             <Route element={<AdminLayout />}>
                                 <Route index element={<Dashboard />} />
@@ -79,6 +81,8 @@ function App() {
                             </Route>
                         </Route>
 
+                        {/* --- CATCH ALL 404 --- */}
+                        <Route path="*" element={<NotFound />} />
                     </Routes>
                 </AnimatePresence>
             </main>
