@@ -29,6 +29,7 @@ const TechMarquee = () => {
 
                 {/* Marquee Container */}
                 <motion.div
+                    aria-hidden="true"
                     className="flex flex-nowrap gap-16 items-center"
                     animate={{ x: ["0%", "-50%"] }}
                     transition={{

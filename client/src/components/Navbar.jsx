@@ -13,8 +13,15 @@ const Navbar = () => {
     const isActive = (path) => location.pathname === path;
 
     useEffect(() => {
+        let ticking = false;
         const handleScroll = () => {
-            setScrolled(window.scrollY > 20);
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    setScrolled(window.scrollY > 20);
+                    ticking = false;
+                });
+                ticking = true;
+            }
         };
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
@@ -69,6 +76,7 @@ const Navbar = () => {
                     <div className="-mr-2 flex md:hidden">
                         <button
                             onClick={() => setIsOpen(!isOpen)}
+                            aria-label="Toggle navigation menu"
                             className="text-gray-300 hover:text-white inline-flex items-center justify-center p-2 rounded-md focus:outline-none"
                         >
                             {isOpen ? <FaTimes size={28} /> : <FaBars size={28} />}
