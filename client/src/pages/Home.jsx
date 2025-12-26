@@ -66,7 +66,7 @@ const Home = () => {
                                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors z-10"></div>
 
                                     {project.images && project.images.length > 0 ? (
-                                        <img src={project.images[0].url} alt={project.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                        <img src={project.images[0].url} alt={project.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center text-gray-600 font-mono">No Preview</div>
                                     )}

@@ -1,33 +1,34 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
+import { Suspense, lazy } from 'react';
 
-
-// Client Components
+// Common Components
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ScrollToTop from './components/ScrollToTop';
+import PageLoader from './components/PageLoader';
 
-// Client Pages
+// Client Pages (Lazy Loaded except Home)
 import Home from './pages/Home';
-import Projects from './pages/Projects';
-import ProjectDetails from './pages/ProjectDetails';
-import ServiceDetail from './pages/ServiceDetail';
-import Process from './pages/Process';
-import TechStack from './pages/TechStack';
-import Contact from './pages/Contact';
-import NotFound from './pages/NotFound';
+const Projects = lazy(() => import('./pages/Projects'));
+const ProjectDetails = lazy(() => import('./pages/ProjectDetails'));
+const ServiceDetail = lazy(() => import('./pages/ServiceDetail'));
+const Process = lazy(() => import('./pages/Process'));
+const TechStack = lazy(() => import('./pages/TechStack'));
+const Contact = lazy(() => import('./pages/Contact'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
-// Admin Components & Guard
-import AdminLayout from './components/admin/AdminLayout';
-import ProtectedRoute from './components/admin/ProtectedRoute';
+// Admin Components & Guard (Lazy Loaded)
+const AdminLayout = lazy(() => import('./components/admin/AdminLayout'));
+const ProtectedRoute = lazy(() => import('./components/admin/ProtectedRoute'));
 
-// Admin Pages
-import AdminLogin from './pages/admin/Login';
-import Dashboard from './pages/admin/Dashboard';
-import AdminProjects from './pages/admin/Projects';
-import Inbox from './pages/admin/Inbox';
-import Analytics from './pages/admin/Analytics';
-import Settings from './pages/admin/Settings';
+// Admin Pages (Lazy Loaded)
+const AdminLogin = lazy(() => import('./pages/admin/Login'));
+const Dashboard = lazy(() => import('./pages/admin/Dashboard'));
+const AdminProjects = lazy(() => import('./pages/admin/Projects'));
+const Inbox = lazy(() => import('./pages/admin/Inbox'));
+const Analytics = lazy(() => import('./pages/admin/Analytics'));
+const Settings = lazy(() => import('./pages/admin/Settings'));
 
 // Hooks
 import usePageTracking from './hooks/usePageTracking';
@@ -54,37 +55,39 @@ function App() {
                 - Admin pages get 0 padding to allow Sidebar/Dashboard to hit the top.
             */}
             <main className={`flex-grow ${!isAdminRoute ? 'pt-20' : ''}`}>
-                <AnimatePresence mode="wait">
-                    <Routes location={location} key={location.pathname}>
+                <Suspense fallback={<PageLoader />}>
+                    <AnimatePresence mode="wait">
+                        <Routes location={location} key={location.pathname}>
 
-                        {/* --- PUBLIC CLIENT ROUTES --- */}
-                        <Route path="/" element={<Home />} />
-                        <Route path="/projects" element={<Projects />} />
-                        <Route path="/project/:id" element={<ProjectDetails />} />
-                        <Route path="/services/:serviceSlug" element={<ServiceDetail />} />
-                        <Route path="/process" element={<Process />} />
-                        <Route path="/stack" element={<TechStack />} />
-                        <Route path="/contact" element={<Contact />} />
+                            {/* --- PUBLIC CLIENT ROUTES --- */}
+                            <Route path="/" element={<Home />} />
+                            <Route path="/projects" element={<Projects />} />
+                            <Route path="/project/:id" element={<ProjectDetails />} />
+                            <Route path="/services/:serviceSlug" element={<ServiceDetail />} />
+                            <Route path="/process" element={<Process />} />
+                            <Route path="/stack" element={<TechStack />} />
+                            <Route path="/contact" element={<Contact />} />
 
-                        {/* --- ADMIN AUTH ROUTE --- */}
-                        <Route path={import.meta.env.VITE_ADMIN_LOGIN} element={<AdminLogin />} />
+                            {/* --- ADMIN AUTH ROUTE --- */}
+                            <Route path={import.meta.env.VITE_ADMIN_LOGIN} element={<AdminLogin />} />
 
-                        {/* --- PROTECTED ADMIN SUITE --- */}
-                        <Route path={import.meta.env.VITE_ADMIN_ROUTE} element={<ProtectedRoute />}>
-                            {/* Layout handles the Sidebar and Topbar for Admin */}
-                            <Route element={<AdminLayout />}>
-                                <Route index element={<Dashboard />} />
-                                <Route path="projects" element={<AdminProjects />} />
-                                <Route path="inbox" element={<Inbox />} />
-                                <Route path="analytics" element={<Analytics />} />
-                                <Route path="settings" element={<Settings />} />
+                            {/* --- PROTECTED ADMIN SUITE --- */}
+                            <Route path={import.meta.env.VITE_ADMIN_ROUTE} element={<ProtectedRoute />}>
+                                {/* Layout handles the Sidebar and Topbar for Admin */}
+                                <Route element={<AdminLayout />}>
+                                    <Route index element={<Dashboard />} />
+                                    <Route path="projects" element={<AdminProjects />} />
+                                    <Route path="inbox" element={<Inbox />} />
+                                    <Route path="analytics" element={<Analytics />} />
+                                    <Route path="settings" element={<Settings />} />
+                                </Route>
                             </Route>
-                        </Route>
 
-                        {/* --- CATCH ALL 404 --- */}
-                        <Route path="*" element={<NotFound />} />
-                    </Routes>
-                </AnimatePresence>
+                            {/* --- CATCH ALL 404 --- */}
+                            <Route path="*" element={<NotFound />} />
+                        </Routes>
+                    </AnimatePresence>
+                </Suspense>
             </main>
 
             {/* 4. Conditionally render Footer (Hidden in Admin) */}

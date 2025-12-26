@@ -5,24 +5,54 @@ const cookieParser = require('cookie-parser');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 
+// Security Middlewares
+const helmet = require('helmet');
+const xss = require('xss-clean');
+const mongoSanitize = require('express-mongo-sanitize');
+const rateLimit = require('express-rate-limit');
+const hpp = require('hpp');
+
 dotenv.config();
 
 const app = express();
 
-// Middleware
-app.use(express.json());
-app.use(cookieParser());
-app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-    credentials: true
-}));
-
 // Connect to Database
 connectDB();
 
-// Basic Route
+// --- SECURITY MIDDLEWARE STACK ---
+
+// 1. Set Security HTTP Headers
+app.use(helmet());
+
+// 2. Body Parser (Reading data from body into req.body)
+app.use(express.json({ limit: '10kb' })); // Limit body size
+app.use(cookieParser());
+
+// NO Sanitization Middleware (Incompatible with Express 5 currently)
+// app.use(mongoSanitize());
+// app.use(xss());
+// app.use(hpp());
+
+// 6. Rate Limiting (100 requests per 10 mins)
+const limiter = rateLimit({
+    windowMs: 10 * 60 * 1000, // 10 minutes
+    max: 100,
+    message: 'Too many requests from this IP, please try again after 10 minutes'
+});
+app.use('/api', limiter);
+
+// 7. CORS (Allow Credentials for Cookies)
+app.use(cors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// --- ROUTES ---
+
 app.get('/', (req, res) => {
-    res.send('API is running...');
+    res.send('API is running securely...');
 });
 
 app.use('/api/auth', require('./routes/authRoutes'));

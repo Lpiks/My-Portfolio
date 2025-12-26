@@ -1,4 +1,4 @@
-import { FaLaptopCode, FaMobileAlt, FaDraftingCompass } from 'react-icons/fa';
+import { FaLaptopCode, FaMobileAlt, FaDraftingCompass, FaRobot } from 'react-icons/fa';
 
 export const services = [
     {
@@ -56,7 +56,7 @@ export const services = [
         description: "Flexible, client-managed solutions with custom themes and plugins.",
         tech: "WordPress, PHP, Headless CMS",
         icon: FaDraftingCompass,
-        span: "col-span-1 md:col-span-3",
+        span: "col-span-1",
         gradient: "from-orange-900/20 to-red-900/20",
         roadmap: [
             { title: "Theme Strategy", desc: "Determining functionality vs aesthetics." },
@@ -71,6 +71,30 @@ export const services = [
             "SEO-first Structure",
             "E-commerce (WooCommerce)",
             "Multi-language Support"
+        ]
+    },
+    {
+        id: "automation-bots",
+        title: "Automation & Bots",
+        subtitle: "Work smarter with intelligent 24/7 automation.",
+        description: "Custom bots and automation scripts to streamline workflows, scrape data, and handle repetitive tasks.",
+        tech: "Node.js, Puppeteer, Discord.js",
+        icon: FaRobot,
+        span: "col-span-1 md:col-span-2",
+        gradient: "from-blue-900/20 to-cyan-900/20",
+        roadmap: [
+            { title: "Workflow Analysis", desc: "Identifying bottlenecks and automation opportunities." },
+            { title: "Script Development", desc: "Coding custom bots and scrapers." },
+            { title: "Integration Testing", desc: "Ensuring seamless operation with existing APIs." },
+            { title: "Deployment & Monitoring", desc: "Hosting reliable, 24/7 active bots." }
+        ],
+        features: [
+            "Discord & Telegram Bots",
+            "Web Scraping (Puppeteer/Selenium)",
+            "Task Scheduling (Cron Jobs)",
+            "API Webhooks Integration",
+            "Auto-Reply & Moderation Systems",
+            "Data Extraction & Processing"
         ]
     }
 ];
