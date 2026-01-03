@@ -30,7 +30,7 @@ const TechMarquee = () => {
                 {/* Marquee Container */}
                 <motion.div
                     aria-hidden="true"
-                    className="flex flex-nowrap gap-16 items-center"
+                    className="flex flex-nowrap items-center"
                     animate={{ x: ["0%", "-50%"] }}
                     transition={{
                         repeat: Infinity,
@@ -39,9 +39,12 @@ const TechMarquee = () => {
                     }}
                     style={{ whiteSpace: "nowrap" }}
                 >
-                    {/* Double the array to create seamless loop */}
-                    {[...techs, ...techs].map((tech, index) => (
-                        <div key={`${tech.name}-${index}`} className="flex flex-col items-center group cursor-default">
+                    {/* Multiply the array to create seamless loop.
+                        Using padding-right on items instead of gap on container ensures 
+                        total width is exactly symmetric for the -50% translation.
+                    */}
+                    {[...techs, ...techs, ...techs, ...techs].map((tech, index) => (
+                        <div key={`${tech.name}-${index}`} className="flex flex-col items-center group cursor-default pr-16">
                             <tech.icon
                                 className={`text-5xl text-gray-600 transition-colors duration-300 ${tech.color}`}
                             />
