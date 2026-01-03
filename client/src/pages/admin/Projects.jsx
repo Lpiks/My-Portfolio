@@ -29,11 +29,13 @@ const Projects = () => {
         liveLink: '',
         liveLink: '',
         repoLink: '',
+        demoVideo: '',
         featuredOnHome: false,
         displayOrder: 0
     });
 
     const [selectedFiles, setSelectedFiles] = useState([]);
+    const [selectedVideo, setSelectedVideo] = useState(null); // State for video file
     const [previewImages, setPreviewImages] = useState([]);
 
     // Image Management State
@@ -77,6 +79,7 @@ const Projects = () => {
             liveLink: project.liveLink || '',
             liveLink: project.liveLink || '',
             repoLink: project.repoLink || '',
+            demoVideo: project.demoVideo || '',
             featuredOnHome: project.featuredOnHome || false,
             displayOrder: project.displayOrder || 0
         });
@@ -90,6 +93,7 @@ const Projects = () => {
         setImagesToDelete([]);
         setPreviewImages([]); // Creating new ones only for new uploads
         setSelectedFiles([]); // Clear new files
+        setSelectedVideo(null); // Clear video
         setIsFormOpen(true);
     };
 
@@ -142,6 +146,7 @@ const Projects = () => {
         data.append('features', formData.features);
         data.append('liveLink', formData.liveLink);
         data.append('repoLink', formData.repoLink);
+        data.append('demoVideo', formData.demoVideo);
         data.append('featuredOnHome', formData.featuredOnHome);
         data.append('displayOrder', formData.displayOrder);
 
@@ -154,6 +159,11 @@ const Projects = () => {
             selectedFiles.forEach(file => {
                 data.append('images', file);
             });
+        }
+
+        // Append Video
+        if (selectedVideo) {
+            data.append('demoVideo', selectedVideo);
         }
 
         // Debug FormData
@@ -177,8 +187,9 @@ const Projects = () => {
             }
             setIsFormOpen(false);
             setEditingProject(null);
-            setFormData({ title: '', description: '', techStack: '', features: '', liveLink: '', repoLink: '', featuredOnHome: false, displayOrder: 0 });
+            setFormData({ title: '', description: '', techStack: '', features: '', liveLink: '', repoLink: '', demoVideo: '', featuredOnHome: false, displayOrder: 0 });
             setSelectedFiles([]);
+            setSelectedVideo(null);
             setPreviewImages([]);
             setExistingImages([]);
             setImagesToDelete([]);
@@ -192,8 +203,9 @@ const Projects = () => {
     const resetForm = () => {
         setIsFormOpen(true);
         setEditingProject(null);
-        setFormData({ title: '', description: '', techStack: '', features: '', liveLink: '', repoLink: '', featuredOnHome: false, displayOrder: 0 });
+        setFormData({ title: '', description: '', techStack: '', features: '', liveLink: '', repoLink: '', demoVideo: '', featuredOnHome: false, displayOrder: 0 });
         setSelectedFiles([]);
+        setSelectedVideo(null);
         setPreviewImages([]);
         setExistingImages([]);
         setImagesToDelete([]);
@@ -268,6 +280,18 @@ const Projects = () => {
                                     <div>
                                         <label className="text-sm text-gray-400 block mb-1">Repo Link *</label>
                                         <input className="w-full bg-primary/50 border border-glass-border p-3 rounded-lg text-white" value={formData.repoLink} onChange={e => setFormData({ ...formData, repoLink: e.target.value })} required />
+                                    </div>
+                                    <div>
+                                        <label className="text-sm text-gray-400 block mb-1">Demo Video (Upload MP4/WebM)</label>
+                                        <input
+                                            type="file"
+                                            accept="video/*"
+                                            onChange={(e) => setSelectedVideo(e.target.files[0])}
+                                            className="w-full bg-primary/50 border border-glass-border p-3 rounded-lg text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-accent file:text-white hover:file:bg-accent-dark cursor-pointer"
+                                        />
+                                        {editingProject && editingProject.demoVideo && !selectedVideo && (
+                                            <p className="text-xs text-green-400 mt-1">Current Video: {editingProject.demoVideo.split('/').pop()}</p>
+                                        )}
                                     </div>
                                     <div className="flex gap-4">
                                         <div className="flex-1">

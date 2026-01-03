@@ -7,11 +7,11 @@ const upload = require('../middleware/uploadMiddleware');
 
 router.route('/')
     .get(getProjects)
-    .post(protect, upload.array('images', 5), createProject);
+    .post(protect, upload.fields([{ name: 'images', maxCount: 5 }, { name: 'demoVideo', maxCount: 1 }]), createProject);
 
 router.route('/:id')
     .get(getProjectById)
-    .put(protect, upload.array('images', 5), updateProject)
+    .put(protect, upload.fields([{ name: 'images', maxCount: 5 }, { name: 'demoVideo', maxCount: 1 }]), updateProject)
     .delete(protect, deleteProject);
 
 module.exports = router;

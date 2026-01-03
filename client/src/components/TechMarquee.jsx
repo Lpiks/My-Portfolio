@@ -3,16 +3,16 @@ import { FaReact, FaNodeJs, FaWordpress, FaAws } from 'react-icons/fa';
 import { SiMongodb, SiExpress, SiTailwindcss, SiCloudinary, SiNextdotjs, SiTypescript } from 'react-icons/si';
 
 const techs = [
-    { name: 'React', icon: FaReact, color: 'text-blue-400' },
-    { name: 'Node.js', icon: FaNodeJs, color: 'text-green-500' },
-    { name: 'MongoDB', icon: SiMongodb, color: 'text-green-600' },
-    { name: 'Express', icon: SiExpress, color: 'text-white' },
-    { name: 'Next.js', icon: SiNextdotjs, color: 'text-white' },
-    { name: 'TypeScript', icon: SiTypescript, color: 'text-blue-500' },
-    { name: 'Tailwind', icon: SiTailwindcss, color: 'text-cyan-400' },
-    { name: 'WordPress', icon: FaWordpress, color: 'text-blue-600' },
-    { name: 'Cloudinary', icon: SiCloudinary, color: 'text-blue-700' },
-    { name: 'AWS', icon: FaAws, color: 'text-orange-500' },
+    { name: 'React', icon: FaReact, color: 'group-hover:text-blue-400' },
+    { name: 'Node.js', icon: FaNodeJs, color: 'group-hover:text-green-500' },
+    { name: 'MongoDB', icon: SiMongodb, color: 'group-hover:text-green-600' },
+    { name: 'Express', icon: SiExpress, color: 'group-hover:text-white' },
+    { name: 'Next.js', icon: SiNextdotjs, color: 'group-hover:text-white' },
+    { name: 'TypeScript', icon: SiTypescript, color: 'group-hover:text-blue-500' },
+    { name: 'Tailwind', icon: SiTailwindcss, color: 'group-hover:text-cyan-400' },
+    { name: 'WordPress', icon: FaWordpress, color: 'group-hover:text-blue-600' },
+    { name: 'Cloudinary', icon: SiCloudinary, color: 'group-hover:text-blue-700' },
+    { name: 'AWS', icon: FaAws, color: 'group-hover:text-orange-500' },
 ];
 
 const TechMarquee = () => {
@@ -43,7 +43,7 @@ const TechMarquee = () => {
                     {[...techs, ...techs].map((tech, index) => (
                         <div key={`${tech.name}-${index}`} className="flex flex-col items-center group cursor-default">
                             <tech.icon
-                                className={`text-5xl text-gray-600 transition-colors duration-300 group-hover:${tech.color}`}
+                                className={`text-5xl text-gray-600 transition-colors duration-300 ${tech.color}`}
                             />
                             <span className="mt-2 text-xs text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                 {tech.name}

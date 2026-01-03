@@ -37,10 +37,10 @@ const getProjectById = async (req, res) => {
 };
 
 // Helper to upload buffer to Cloudinary
-const uploadToCloudinary = (buffer) => {
+const uploadToCloudinary = (buffer, resourceType = 'image') => {
     return new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
-            { folder: "portfolio_projects" },
+            { folder: "portfolio_projects", resource_type: resourceType },
             (error, result) => {
                 if (error) return reject(error);
                 resolve({ url: result.secure_url, public_id: result.public_id });
@@ -55,14 +55,22 @@ const uploadToCloudinary = (buffer) => {
 // @access  Private/Admin
 const createProject = async (req, res) => {
     try {
-        const { title, description, techStack, liveLink, repoLink, featured, featuredOnHome, displayOrder } = req.body;
+        const { title, description, techStack, liveLink, repoLink, demoVideo, featured, featuredOnHome, displayOrder } = req.body;
 
         let uploadedImages = [];
+        let uploadedVideoUrl = '';
 
-        // Handle File Uploads (if any)
-        if (req.files && req.files.length > 0) {
-            const uploadPromises = req.files.map(file => uploadToCloudinary(file.buffer));
+        // Handle Image Uploads
+        if (req.files && req.files['images']) {
+            const uploadPromises = req.files['images'].map(file => uploadToCloudinary(file.buffer, 'image'));
             uploadedImages = await Promise.all(uploadPromises);
+        }
+
+        // Handle Video Upload
+        if (req.files && req.files['demoVideo']) {
+            const videoFile = req.files['demoVideo'][0];
+            const videoResult = await uploadToCloudinary(videoFile.buffer, 'video');
+            uploadedVideoUrl = videoResult.url;
         }
 
         // Parse techStack if it came as a string from FormData
@@ -84,6 +92,7 @@ const createProject = async (req, res) => {
             images: uploadedImages, // Array of {url, public_id}
             liveLink,
             repoLink,
+            demoVideo: uploadedVideoUrl || demoVideo, // Prioritize uploaded video, fallback to string if provided
             featured: featured === 'true' || featured === true,
             featuredOnHome: featuredOnHome === 'true' || featuredOnHome === true,
             displayOrder: Number(displayOrder) || 0
@@ -102,7 +111,7 @@ const createProject = async (req, res) => {
 // @access  Private/Admin
 const updateProject = async (req, res) => {
     try {
-        const { title, description, techStack, liveLink, repoLink, featured, featuredOnHome, displayOrder } = req.body;
+        const { title, description, techStack, liveLink, repoLink, demoVideo, featured, featuredOnHome, displayOrder } = req.body;
         const project = await Project.findById(req.params.id);
 
         if (project) {
@@ -110,6 +119,7 @@ const updateProject = async (req, res) => {
             project.description = description || project.description;
             project.liveLink = liveLink || project.liveLink;
             project.repoLink = repoLink || project.repoLink;
+            project.demoVideo = demoVideo || project.demoVideo;
 
             if (featured !== undefined) {
                 project.featured = featured === 'true' || featured === true;
@@ -175,12 +185,23 @@ const updateProject = async (req, res) => {
             }
 
             // 3. Add New Images
-            if (req.files && req.files.length > 0) {
-                const uploadPromises = req.files.map(file => uploadToCloudinary(file.buffer));
+            if (req.files && req.files['images']) {
+                const uploadPromises = req.files['images'].map(file => uploadToCloudinary(file.buffer, 'image'));
                 const newImages = await Promise.all(uploadPromises);
 
                 // Append new images to the end
                 currentImages = [...currentImages, ...newImages];
+            }
+
+            // 4. Handle Video Update
+            if (req.files && req.files['demoVideo']) {
+                const videoFile = req.files['demoVideo'][0];
+                const videoResult = await uploadToCloudinary(videoFile.buffer, 'video');
+                project.demoVideo = videoResult.url;
+            } else if (demoVideo) {
+                // If user provided a URL string (fallback or edit), update it
+                // project.demoVideo = demoVideo; 
+                // Commenting out URL update since we are doing file upload primarily, but keeping logic just in case user sends string
             }
 
             project.images = currentImages;

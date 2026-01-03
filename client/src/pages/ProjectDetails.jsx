@@ -148,6 +148,38 @@ const ProjectDetails = () => {
 
                     {/* Description */}
                     <div className="glass-card p-8 rounded-2xl mt-8">
+                        {project.demoVideo && (
+                            <div className="mb-8 relative aspect-video rounded-xl overflow-hidden border border-glass-border">
+                                {project.demoVideo.includes('youtube.com') || project.demoVideo.includes('youtu.be') ? (
+                                    <iframe
+                                        width="100%"
+                                        height="100%"
+                                        src={project.demoVideo.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
+                                        title="Project Demo"
+                                        frameBorder="0"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowFullScreen
+                                        className="absolute inset-0 w-full h-full"
+                                    ></iframe>
+                                ) : project.demoVideo.includes('vimeo.com') ? (
+                                    <iframe
+                                        src={`https://player.vimeo.com/video/${project.demoVideo.split('/').pop()}`}
+                                        width="100%"
+                                        height="100%"
+                                        frameBorder="0"
+                                        allow="autoplay; fullscreen; picture-in-picture"
+                                        allowFullScreen
+                                        className="absolute inset-0 w-full h-full"
+                                    ></iframe>
+                                ) : (
+                                    <video controls className="w-full h-full object-cover">
+                                        <source src={project.demoVideo} type="video/mp4" />
+                                        Your browser does not support the video tag.
+                                    </video>
+                                )}
+                            </div>
+                        )}
+
                         <h2 className="text-2xl font-bold font-heading mb-4">About this Project</h2>
                         <p className="text-gray-300 leading-relaxed text-lg whitespace-pre-wrap">
                             {project.description}
