@@ -1,12 +1,14 @@
 import { useProjects } from '../context/ProjectContext';
+import { getOptimizedImage } from '../utils/imageUtils';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import TechMarquee from '../components/TechMarquee';
-import ServicesSection from '../components/ServicesSection';
-import Workflow from '../components/Workflow';
-import Expertise from '../components/Expertise';
-import CTASection from '../components/CTASection';
+import { lazy, Suspense } from 'react';
+const TechMarquee = lazy(() => import('../components/TechMarquee'));
+const ServicesSection = lazy(() => import('../components/ServicesSection'));
+const Workflow = lazy(() => import('../components/Workflow'));
+const Expertise = lazy(() => import('../components/Expertise'));
+const CTASection = lazy(() => import('../components/CTASection'));
 
 const Home = () => {
     const { projects, loading } = useProjects();
@@ -41,9 +43,13 @@ const Home = () => {
                 </div>
             </motion.section>
 
-            <TechMarquee />
+            <Suspense fallback={<div className="h-20" />}>
+                <TechMarquee />
+            </Suspense>
 
-            <ServicesSection />
+            <Suspense fallback={<div className="h-40" />}>
+                <ServicesSection />
+            </Suspense>
 
             {/* Showroom Section */}
             <section id="showroom" className="py-20 md:py-32 px-4 max-w-7xl mx-auto">
@@ -72,7 +78,14 @@ const Home = () => {
                                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors z-10"></div>
 
                                     {project.images && project.images.length > 0 ? (
-                                        <img src={project.images[0].url} alt={project.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                        <img 
+                                            src={getOptimizedImage(project.images[0].url, 600)} 
+                                            alt={project.title} 
+                                            loading="lazy"
+                                            width="600"
+                                            height="340"
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                                        />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center text-gray-600 font-mono">No Preview</div>
                                     )}
@@ -97,11 +110,17 @@ const Home = () => {
                 )}
             </section>
 
-            <Workflow />
+            <Suspense fallback={<div className="h-40" />}>
+                <Workflow />
+            </Suspense>
 
-            <Expertise />
+            <Suspense fallback={<div className="h-40" />}>
+                <Expertise />
+            </Suspense>
 
-            <CTASection />
+            <Suspense fallback={<div className="h-20" />}>
+                <CTASection />
+            </Suspense>
         </div>
     );
 };

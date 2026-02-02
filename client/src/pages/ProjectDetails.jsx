@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import { FaGithub, FaExternalLinkAlt, FaCheckCircle, FaArrowLeft } from 'react-icons/fa';
 import SkeletonLoader from '../components/SkeletonLoader';
+import { getOptimizedImage } from '../utils/imageUtils';
 
 const ProjectDetails = () => {
     const { id } = useParams();
@@ -127,7 +128,11 @@ const ProjectDetails = () => {
                     >
                         {project.images && project.images.length > 0 ? (
                             <>
-                                <img src={project.images[activeImage].url} alt={project.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                                <img 
+                                    src={getOptimizedImage(project.images[activeImage].url, 1200)} 
+                                    alt={project.title} 
+                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                                />
                                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
                                     <span className="bg-black/50 text-white px-4 py-2 rounded-full backdrop-blur-sm text-sm font-bold">Click to Expand</span>
                                 </div>
@@ -145,7 +150,13 @@ const ProjectDetails = () => {
                                     onClick={() => setActiveImage(idx)}
                                     className={`w-24 h-16 rounded-lg overflow-hidden border-2 transition-all shrink-0 ${activeImage === idx ? 'border-accent' : 'border-transparent opacity-60 hover:opacity-100'}`}
                                 >
-                                    <img src={img.url} alt="Thumbnail" className="w-full h-full object-cover" />
+                                    <img 
+                                        src={getOptimizedImage(img.url, 200)} 
+                                        alt="Thumbnail" 
+                                        className="w-full h-full object-cover" 
+                                        width="96"
+                                        height="64"
+                                    />
                                 </button>
                             ))}
                         </div>
