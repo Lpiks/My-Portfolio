@@ -34,15 +34,18 @@ const createMessage = async (req, res) => {
             </div>
         `;
 
-        // Send Email (Fire-and-forget to prevent blocking response)
-        sendEmail({
-            senderName,
-            senderEmail, // Passed for reply-to
-            subject: `[New Lead] - ${relatedProject || 'General Inquiry'}`,
-            html: emailHtml
-        }).catch(emailError => {
+        // Send Email (Await to ensure delivery on serverless platforms)
+        try {
+            await sendEmail({
+                senderName,
+                senderEmail, // Passed for reply-to
+                subject: `[New Lead] - ${relatedProject || 'General Inquiry'}`,
+                html: emailHtml
+            });
+        } catch (emailError) {
             console.error("Email sending failed:", emailError);
-        });
+            // We still return success to the user as the message was saved to DB
+        }
 
         res.status(201).json(newMessage);
     } catch (error) {
