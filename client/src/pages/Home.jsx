@@ -1,6 +1,7 @@
 import { useProjects } from '../context/ProjectContext';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import TechMarquee from '../components/TechMarquee';
 import ServicesSection from '../components/ServicesSection';
 import Workflow from '../components/Workflow';
@@ -12,6 +13,11 @@ const Home = () => {
 
     return (
         <div className="min-h-screen">
+            <Helmet>
+                <title>Abdelhadi Hammaz | Full-Stack & Cross-Platform Developer</title>
+                <meta name="description" content="Portfolio of Abdelhadi Hammaz. Building high-performance web applications and cross-platform mobile experiences with modern tech stacks." />
+                <link rel="canonical" href="https://abdelhadihammaz.netlify.app/" />
+            </Helmet>
             {/* Hero Section */}
             <motion.section
                 initial={{ opacity: 0, y: 20 }}

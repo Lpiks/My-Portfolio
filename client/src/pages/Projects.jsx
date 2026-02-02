@@ -1,6 +1,7 @@
 import { useProjects } from '../context/ProjectContext';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import SkeletonLoader from '../components/SkeletonLoader';
 
 const Projects = () => {
@@ -16,6 +17,10 @@ const Projects = () => {
 
     return (
         <div className="min-h-screen py-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+            <Helmet>
+                <title>Projects | Abdelhadi Hammaz</title>
+                <meta name="description" content="Explore the portfolio of highly crafted web and mobile applications including e-commerce platforms, SaaS tools, and more." />
+            </Helmet>
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}

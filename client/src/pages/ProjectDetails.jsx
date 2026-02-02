@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Helmet } from 'react-helmet-async';
 import { FaGithub, FaExternalLinkAlt, FaCheckCircle, FaArrowLeft } from 'react-icons/fa';
 import SkeletonLoader from '../components/SkeletonLoader';
 
@@ -80,6 +81,10 @@ const ProjectDetails = () => {
             exit={{ opacity: 0 }}
             className="min-h-screen pt-24 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto"
         >
+            <Helmet>
+                <title>{`${project.title} | Abdelhadi Hammaz`}</title>
+                <meta name="description" content={`Case study for ${project.title}: ${project.description.substring(0, 150)}...`} />
+            </Helmet>
             <Link to="/" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-8 transition-colors">
                 <FaArrowLeft /> Back to Project Gallery
             </Link>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 import api from '../utils/api';
+import { Helmet } from 'react-helmet-async';
 import { FaEnvelope, FaGithub, FaLinkedin, FaMapMarkerAlt, FaPaperPlane, FaProjectDiagram } from 'react-icons/fa';
 
 const Contact = () => {
@@ -54,6 +55,10 @@ const Contact = () => {
 
     return (
         <div className="min-h-screen px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto py-20 flex items-center">
+            <Helmet>
+                <title>Contact Me | Abdelhadi Hammaz</title>
+                <meta name="description" content="Get in touch for collaborations, project inquiries, or technical consultation. Available for freelance and full-time opportunities." />
+            </Helmet>
             <motion.div
                 variants={containerVariants}
                 initial="hidden"
