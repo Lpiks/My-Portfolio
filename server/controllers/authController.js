@@ -8,8 +8,8 @@ const generateToken = (res, userId) => {
 
     res.cookie('jwt', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV !== 'development', // Use secure cookies in production
-        sameSite: 'strict',
+        secure: process.env.NODE_ENV === 'production', // Use secure cookies ONLY in production
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
     });
 };
@@ -39,6 +39,8 @@ const authAdmin = async (req, res) => {
 const logoutAdmin = (req, res) => {
     res.cookie('jwt', '', {
         httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         expires: new Date(0)
     });
     res.status(200).json({ message: 'Logged out successfully' });
