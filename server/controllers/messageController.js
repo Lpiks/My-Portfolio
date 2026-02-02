@@ -8,6 +8,7 @@ const createMessage = async (req, res) => {
     try {
         const { senderName, senderEmail, message, relatedProject, subject } = req.body;
 
+        console.time('DB_Save');
         const newMessage = await Message.create({
             senderName,
             senderEmail,
@@ -15,6 +16,7 @@ const createMessage = async (req, res) => {
             subject: subject || 'General Inquiry',
             relatedProject: relatedProject || 'General'
         });
+        console.timeEnd('DB_Save');
 
         // HTML Email Template
         const emailHtml = `
