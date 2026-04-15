@@ -188,7 +188,12 @@ const ProjectDetails = () => {
                                         className="absolute inset-0 w-full h-full"
                                     ></iframe>
                                 ) : (
-                                    <video controls className="w-full h-full object-cover">
+                                    <video 
+                                        controls 
+                                        controlsList="nodownload" 
+                                        onContextMenu={(e) => e.preventDefault()} 
+                                        className="w-full h-full object-cover"
+                                    >
                                         <source src={project.demoVideo} type="video/mp4" />
                                         Your browser does not support the video tag.
                                     </video>
