@@ -36,26 +36,15 @@ const createMessage = async (req, res) => {
             </div>
         `;
 
-        // Send Email (Await to ensure delivery on serverless platforms)
-        // Send Email with Safety Valve (Max wait 2s)
+        // Send Email (Wait for it to finish completely to prevent Serverless kills)
         try {
-            const emailPromise = sendEmail({
+            await sendEmail({
                 senderName,
                 senderEmail, // Passed for reply-to
                 subject: `[New Lead] - ${relatedProject || 'General Inquiry'}`,
                 html: emailHtml
             });
-
-            // If email takes longer than 2s, we move on (it continues in background)
-            const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve('timeout'), 2000));
-
-            const result = await Promise.race([emailPromise, timeoutPromise]);
-
-            if (result === 'timeout') {
-                console.warn("⚠️ Email sending timed out (Client released, email continues in background)");
-            } else {
-                console.log("✅ Email sent successfully within time limit");
-            }
+            console.log("✅ Email sent successfully");
         } catch (emailError) {
             console.error("❌ Email sending failed:", emailError);
             // We still return success to the user as the message was saved to DB
